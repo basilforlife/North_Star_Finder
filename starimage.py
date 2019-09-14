@@ -37,12 +37,6 @@ class StarImage:
         self.x_edge_img = signal.convolve2d(self.gray_img, self.x_edge_kernel, mode='same')
         self.y_edge_img = signal.convolve2d(self.gray_img, self.y_edge_kernel, mode='same') 
 
-    # This fn makes the x and y edge detected versions of the image
-    def cuda_convolve(self):
-        self.d_x_edge_img = signal.convolve2d(self.gray_img, self.x_edge_kernel, mode='same')
-        self.d_y_edge_img = signal.convolve2d(self.gray_img, self.y_edge_kernel, mode='same') 
-
-
     # This fn removes edges facing up, so that each star track only gives one edge. Optional to use
     def removeUpwardEdges(self):
         for j in range(self.height):
@@ -62,7 +56,7 @@ class StarImage:
         start = cuda.grid(1)
         stride = cuda.gridsize(1)
         self.d_magnitude_img = cuda.device_array( # Fill this in with correct size !!!!!!!!!!!!!!!!!!!!!!
-        for i in range(start, self.d_gray_img.shape[0]:
+        for i in range(start, self.d_gray_img.shape[0], stride):
             self.d_magnitude_img[i] = math.sqrt(self.d_x_edge_img[i]**2 + self.d_y_edge_img[i]**2)
 
     # This fn makes an array in the shape of gray_img where the values match the indices, for use in the cost fn 
