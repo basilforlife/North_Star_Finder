@@ -1,4 +1,4 @@
-# This is a clean rewfrom scipy.optimize import minimizerite of find_north_star.py, with the goal of CUDA-izing the algorithm later
+# This is a clean rewrite of find_north_star.py, with the goal of CUDA-izing the algorithm later
 # 7 September 2019
 
 
@@ -13,7 +13,7 @@ import numpy as np
 
 
 # Params
-PATH = '/Users/jonathanroy/Projects/North_Star_Finder/test_images/'
+PATH = '/home/roy/North_Star_Finder/test_images/'
 FILENAME = 'test_1.png'
 OUT_FILENAME = 'test_1_w_north_star.png'
 
@@ -26,7 +26,7 @@ img.convolve()
 img.makePolar()
 img.makeArrayLocationMatrices()
 img.findNorthStar()
-print(f'north_star_loc = {img.north_star_loc}')
+print('north_star_loc = ' + repr(img.north_star_loc))
 
 # save image with north star location indicated
 img.makeOutputImage()
