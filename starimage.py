@@ -15,14 +15,14 @@ from numba import cuda
 class StarImage:
 
     # configure to environment
-    device_available = False
+    device_available = True 
 
     # define Sobel edge detection kernels
     x_edge_kernel = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]]) # horizontal edges
     y_edge_kernel = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]]) # vertical edges
-    if self.device_available: # copy sobel edge kernels to device
-        d_x_edge_kernel = cuda.to_device(x_edge_kernel) 
-        d_y_edge_kernel = cuda.to_device(y_edge_kernel)
+    #if device_available: # copy sobel edge kernels to device
+    #    d_x_edge_kernel = cuda.to_device(x_edge_kernel) 
+    #    d_y_edge_kernel = cuda.to_device(y_edge_kernel)
  
     def __init__(self, path, filename):
         self.gray_img = cv2.imread(path + filename, cv2.IMREAD_GRAYSCALE) # get grayscale img
@@ -50,14 +50,22 @@ class StarImage:
         self.magnitude_img = np.sqrt(self.x_edge_img**2 + self.y_edge_img**2)
         self.orientation_img = np.arctan2(self.x_edge_img, self.y_edge_img) + np.pi
 
-    # This fn makes the polar coords of the edge vectors of the image
-    @cuda.jit
+    # jThis fn makes the polar coords of the edge vectors of the image
+    @cuda.jit(device=True)
     def cuda_makeMagnitude(self):
+        # copy edge images over. Should be cleaned up once they get made on GPU
+        self.d_x_edge_img = cuda.to_device(self.x_edge_img.flatten())
+        self.d_y_edge_img = cuda.to_device(self.y_edge_img.flatten())
+
         start = cuda.grid(1)
         stride = cuda.gridsize(1)
-        self.d_magnitude_img = cuda.device_array( # Fill this in with correct size !!!!!!!!!!!!!!!!!!!!!!
+        self.d_magnitude_img = cuda.device_array(self.height * self.width)
         for i in range(start, self.d_gray_img.shape[0], stride):
             self.d_magnitude_img[i] = math.sqrt(self.d_x_edge_img[i]**2 + self.d_y_edge_img[i]**2)
+
+        # reshape and send array back to CPU memory. Clean up later
+        arr = self.d_magnitude_image.reshape((self.height, self.width))
+        arr.copy_to_host(self.magnitude_img_from_gpu)
 
     # This fn makes an array in the shape of gray_img where the values match the indices, for use in the cost fn 
     # This could be accomplished by using the same for loop structure in the cost fn,

@@ -10,6 +10,7 @@ import matplotlib.patches as patches
 import cv2
 import seaborn as sns
 import numpy as np
+from numpy import testing
 
 
 # Params
@@ -27,6 +28,10 @@ img.makePolar()
 img.makeArrayLocationMatrices()
 img.findNorthStar()
 print('north_star_loc = ' + repr(img.north_star_loc))
+
+# test to see if magnitude_img calc on GPU is correct
+#img.cuda_makeMagnitude()
+#testing.assert_almost_equal(img.magnitude_img, self.magnitude_img_from_gpu)
 
 # save image with north star location indicated
 img.makeOutputImage()
